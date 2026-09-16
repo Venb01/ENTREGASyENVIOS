@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F4EE;
+    --surface: #FFFFFF;
+    --ink: #211D1B;
+    --ink-soft: #6B645D;
+    --line: #E4DFD5;
+    --recoger: #2F5D50;
+    --yango: #2C3E70;
+    --provincia: #6B3454;
+    --danger: #A3402F;
+    --focus: #2C3E70;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140F;
+      --surface: #221E19;
+      --ink: #F3EFE7;
+      --ink-soft: #B4ACA0;
+      --line: #3A342C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17140F;
+    --surface: #221E19;
+    --ink: #F3EFE7;
+    --ink-soft: #B4ACA0;
+    --line: #3A342C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Public Sans', system-ui, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 18px 64px;
+  }
+  header.top { margin-bottom: 22px; }
+  header.top h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(28px, 6vw, 38px);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  header.top p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    max-width: 52ch;
+  }
+  .status-banner {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+  }
+
+  /* --- Botones principales --- */
+  .choice-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (min-width: 620px) {
+    .choice-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  button.choice {
+    appearance: none;
+    cursor: pointer;
+    border-radius: 12px;
+    border: 2px solid var(--line);
+    background: var(--surface);
+    padding: 20px 16px;
+    text-align: left;
+    font-family: 'Public Sans', sans-serif;
+    color: var(--ink);
+    transition: border-color .15s ease, background .15s ease;
+  }
+  button.choice .tag {
+    display: block;
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  button.choice[data-type="recoger"] .tag { background: var(--recoger); }
+  button.choice[data-type="yango"] .tag { background: var(--yango); }
+  button.choice[data-type="provincia"] .tag { background: var(--provincia); }
+  button.choice .choice-title {
+    display: block;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  button.choice .choice-sub {
+    display: block;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  button.choice:hover { border-color: var(--ink-soft); }
+  button.choice[aria-pressed="true"][data-type="recoger"] { border-color: var(--recoger); background: color-mix(in srgb, var(--recoger) 8%, var(--surface)); }
+  button.choice[aria-pressed="true"][data-type="yango"] { border-color: var(--yango); background: color-mix(in srgb, var(--yango) 8%, var(--surface)); }
+  button.choice[aria-pressed="true"][data-type="provincia"] { border-color: var(--provincia); background: color-mix(in srgb, var(--provincia) 8%, var(--surface)); }
+  button.choice:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* --- Panel de sección --- */
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 22px 20px;
+    margin-bottom: 26px;
+  }
+  .panel .lead { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  form.entry-form { display: grid; gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+  .field input, .field textarea {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 15px;
+    padding: 10px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .field textarea { resize: vertical; min-height: 64px; }
+  .field input:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent);
+  }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .two-col { grid-template-columns: 1fr; } }
+
+  button.submit {
+    justify-self: start;
+    margin-top: 4px;
+    border: none;
+    color: #fff;
+    font-family: 'Public Sans', sans-serif;
+    font-weight: 700;
+    font-size: 14.5px;
+    padding: 11px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .panel[data-type="recoger"] button.submit { background: var(--recoger); }
+  .panel[data-type="yango"] button.submit { background: var(--yango); }
+  .panel[data-type="provincia"] button.submit { background: var(--provincia); }
+  button.submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .form-msg { font-size: 13px; margin-top: 2px; min-height: 18px; }
+  .form-msg.error { color: var(--danger); }
+  .form-msg.ok { color: var(--recoger); }
+
+  .list-section { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .list-section h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 19px; margin: 0 0 4px; }
+  .list-meta { font-size: 13px; color: var(--ink-soft); margin: 0 0 12px; }
+  .search-row { margin-bottom: 14px; }
+  .search-row input {
+    width: 100%;
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14.5px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  ul.entries { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  ul.entries li {
+    border: 1px solid var(--line);
+    border-left-width: 4px;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: var(--bg);
+  }
+  .panel[data-type="recoger"] ul.entries li { border-left-color: var(--recoger); }
+  .panel[data-type="yango"] ul.entries li { border-left-color: var(--yango); }
+  .panel[data-type="provincia"] ul.entries li { border-left-color: var(--provincia); }
+
+  .entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .entry-phone { font-weight: 700; font-size: 15.5px; }
+  .entry-day { font-size: 13px; color: var(--ink-soft); }
+  .entry-detail { font-size: 13.5px; margin-top: 4px; color: var(--ink-soft); }
+  .entry-detail b { color: var(--ink); font-weight: 600; }
+  .entry-desc { font-size: 14px; margin-top: 6px; white-space: pre-wrap; }
+  .entry-expiry { font-size: 11.5px; margin-top: 8px; color: var(--ink-soft); opacity: 0.85; }
+
+  .empty-state {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    padding: 18px 4px;
+    text-align: center;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+  }
+
+  footer.note { margin-top: 8px; font-size: 12px; color: var(--ink-soft); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Registro de pedidos</h1>
+    <p>Elige el tipo de pedido para ver su formulario y su lista. Los registros se eliminan automáticamente a los 7 días.</p>
+    <div id="statusBanner" class="status-banner" style="display:none;"></div>
+  </header>
+
+  <div class="choice-grid" role="group" aria-label="Tipo de pedido">
+    <button type="button" class="choice" data-type="recoger" aria-pressed="false">
+      <span class="tag"></span>
+      <span class="choice-title">Recoger en la ubicación</span>
+      <span class="choice-sub">El cliente pasa por la tienda</span>
+    </button>
+    <button type="button" class="choice" data-type="yango" aria-pressed="false">
+      <span class="tag"></span>
+      <span class="choice-title">Envío con Yango</span>
+      <span class="choice-sub">Entrega dentro de la ciudad</span>
+    </button>
+    <button type="button" class="choice" data-type="provincia" aria-pressed="false">
+      <span class="tag"></span>
+      <span class="choice-title">Envío a otro departamento / provincia</span>
+      <span class="choice-sub">Encomienda fuera de la ciudad</span>
+    </button>
+  </div>
+
+  <section class="panel" data-type="recoger" hidden>
+    <p class="lead">El cliente pasará a recoger su pedido por la tienda.</p>
+    <form class="entry-form" data-type="recoger">
+      <div class="field">
+        <label for="recoger-celular">Número celular</label>
+        <input id="recoger-celular" name="celular" type="tel" inputmode="numeric" placeholder="Ej. 71234567" required>
+      </div>
+      <div class="field">
+        <label for="recoger-dia">Día de recoger</label>
+        <input id="recoger-dia" name="dia" type="date" required>
+      </div>
+      <div class="field">
+        <label for="recoger-desc">Descripción (prendas del pedido)</label>
+        <textarea id="recoger-desc" name="descripcion" placeholder="Ej. 2 camisas, 1 pantalón, 1 chaqueta"></textarea>
+      </div>
+      <button type="submit" class="submit">Registrar</button>
+      <p class="form-msg" data-role="msg"></p>
+    </form>
+
+    <div class="list-section">
+      <h2>Pedidos para recoger</h2>
+      <p class="list-meta" data-role="meta">—</p>
+      <div class="search-row">
+        <input type="search" placeholder="Buscar por número de celular…" data-role="search">
+      </div>
+      <ul class="entries" data-role="list"></ul>
+    </div>
+  </section>
+
+  <section class="panel" data-type="yango" hidden>
+    <p class="lead">El pedido se enviará mediante Yango.</p>
+    <form class="entry-form" data-type="yango">
+      <div class="field">
+        <label for="yango-celular">Número celular</label>
+        <input id="yango-celular" name="celular" type="tel" inputmode="numeric" placeholder="Ej. 71234567" required>
+      </div>
+      <div class="field">
+        <label for="yango-dia">Día de envío</label>
+        <input id="yango-dia" name="dia" type="date" required>
+      </div>
+      <div class="field">
+        <label for="yango-desc">Descripción (prendas del pedido)</label>
+        <textarea id="yango-desc" name="descripcion" placeholder="Ej. 2 camisas, 1 pantalón, 1 chaqueta"></textarea>
+      </div>
+      <button type="submit" class="submit">Registrar</button>
+      <p class="form-msg" data-role="msg"></p>
+    </form>
+
+    <div class="list-section">
+      <h2>Envíos con Yango</h2>
+      <p class="list-meta" data-role="meta">—</p>
+      <div class="search-row">
+        <input type="search" placeholder="Buscar por número de celular…" data-role="search">
+      </div>
+      <ul class="entries" data-role="list"></ul>
+    </div>
+  </section>
+
+  <section class="panel" data-type="provincia" hidden>
+    <p class="lead">El pedido se enviará a otro departamento o provincia.</p>
+    <form class="entry-form" data-type="provincia">
+      <div class="two-col">
+        <div class="field">
+          <label for="provincia-celular">Número celular</label>
+          <input id="provincia-celular" name="celular" type="tel" inputmode="numeric" placeholder="Ej. 71234567" required>
+        </div>
+        <div class="field">
+          <label for="provincia-ci">CI</label>
+          <input id="provincia-ci" name="ci" type="text" inputmode="numeric" placeholder="Ej. 1234567 LP" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="provincia-nombre">Nombre completo</label>
+        <input id="provincia-nombre" name="nombre" type="text" placeholder="Nombre y apellidos" required>
+      </div>
+      <div class="field">
+        <label for="provincia-destino">Destino</label>
+        <input id="provincia-destino" name="destino" type="text" list="departamentos" placeholder="Departamento / provincia / ciudad" required>
+        <datalist id="departamentos">
+          <option value="La Paz">
+          <option value="Santa Cruz">
+          <option value="Cochabamba">
+          <option value="Oruro">
+          <option value="Potosí">
+          <option value="Chuquisaca">
+          <option value="Tarija">
+          <option value="Beni">
+          <option value="Pando">
+        </datalist>
+      </div>
+      <div class="field">
+        <label for="provincia-desc">Descripción (prendas del pedido)</label>
+        <textarea id="provincia-desc" name="descripcion" placeholder="Ej. 2 camisas, 1 pantalón, 1 chaqueta"></textarea>
+      </div>
+      <button type="submit" class="submit">Registrar</button>
+      <p class="form-msg" data-role="msg"></p>
+    </form>
+
+    <div class="list-section">
+      <h2>Envíos a otro departamento</h2>
+      <p class="list-meta" data-role="meta">—</p>
+      <div class="search-row">
+        <input type="search" placeholder="Buscar por número de celular…" data-role="search">
+      </div>
+      <ul class="entries" data-role="list"></ul>
+    </div>
+  </section>
+
+  <footer class="note">Los pedidos no se pueden editar ni eliminar manualmente. Se borran solos a los 7 días.</footer>
+</div>
+
+<script>
+(function () {
+  const RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+  const STORAGE_KEY = "pedidos_v1";
+  const TYPE_DAY_LABEL = { recoger: "Recoger", yango: "Envío", provincia: "Registrado" };
+
+  let activeType = null;
+
+  function loadAll() {
+    let raw;
+    try { raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch (e) { raw = []; }
+    if (!Array.isArray(raw)) raw = [];
+    return raw;
+  }
+
+  function saveAll(items) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); return true; }
+    catch (e) { return false; }
+  }
+
+  function pruneExpired() {
+    const all = loadAll();
+    const now = Date.now();
+    const kept = all.filter(it => (now - it.createdAtMs) < RETENTION_MS);
+    if (kept.length !== all.length) saveAll(kept);
+    return kept;
+  }
+
+  function fmtDate(d) {
+    try { return new Date(d).toLocaleDateString("es-BO", { day: "2-digit", month: "short", year: "numeric" }); }
+    catch (e) { return d; }
+  }
+  function fmtDateTime(ms) {
+    try { return new Date(ms).toLocaleString("es-BO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); }
+    catch (e) { return ""; }
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function render(type) {
+    const panel = document.querySelector('.panel[data-type="' + type + '"]');
+    if (!panel) return;
+    const listEl = panel.querySelector('[data-role="list"]');
+    const metaEl = panel.querySelector('[data-role="meta"]');
+    const searchEl = panel.querySelector('[data-role="search"]');
+    const query = (searchEl.value || "").replace(/\D/g, "");
+
+    let items = pruneExpired().filter(it => it.tipo === type);
+    items.sort((a, b) => b.createdAtMs - a.createdAtMs);
+    if (query) items = items.filter(it => (it.celular || "").replace(/\D/g, "").includes(query));
+
+    metaEl.textContent = items.length + (items.length === 1 ? " registro" : " registros");
+
+    listEl.innerHTML = "";
+    if (items.length === 0) {
+      const empty = document.createElement("li");
+      empty.className = "empty-state";
+      empty.style.border = "none";
+      empty.textContent = query ? "No se encontraron pedidos con ese número." : "Todavía no hay pedidos registrados.";
+      listEl.appendChild(empty);
+      return;
+    }
+
+    for (const it of items) {
+      const li = document.createElement("li");
+      const expiry = it.createdAtMs + RETENTION_MS;
+      let extra = "";
+      if (type === "provincia") {
+        extra = '<div class="entry-detail"><b>' + escapeHtml(it.nombre || "-") + '</b> · CI ' + escapeHtml(it.ci || "-") + ' · Destino: ' + escapeHtml(it.destino || "-") + '</div>';
+      }
+      li.innerHTML =
+        '<div class="entry-top">' +
+          '<span class="entry-phone">' + escapeHtml(it.celular || "-") + '</span>' +
+          '<span class="entry-day">' + (it.dia ? (TYPE_DAY_LABEL[type] + ': ' + fmtDate(it.dia)) : "") + '</span>' +
+        '</div>' +
+        extra +
+        (it.descripcion ? '<div class="entry-desc">' + escapeHtml(it.descripcion) + '</div>' : '') +
+        '<div class="entry-expiry">Registrado ' + fmtDateTime(it.createdAtMs) + ' · Se elimina el ' + fmtDate(expiry) + '</div>';
+      listEl.appendChild(li);
+    }
+  }
+
+  function showType(type) {
+    activeType = type;
+    document.querySelectorAll("button.choice").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.type === type)));
+    document.querySelectorAll(".panel").forEach(p => { p.hidden = p.dataset.type !== type; });
+    if (type) {
+      render(type);
+      const panel = document.querySelector('.panel[data-type="' + type + '"]');
+      if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  document.querySelectorAll("button.choice").forEach(btn => {
+    btn.addEventListener("click", () => {
+      showType(activeType === btn.dataset.type ? null : btn.dataset.type);
+    });
+  });
+
+  document.querySelectorAll('[data-role="search"]').forEach(input => {
+    input.addEventListener("input", () => render(input.closest(".panel").dataset.type));
+  });
+
+  document.querySelectorAll("form.entry-form").forEach(form => {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const type = form.dataset.type;
+      const msgEl = form.querySelector('[data-role="msg"]');
+      const btn = form.querySelector("button.submit");
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      if (!data.celular || !data.celular.trim()) {
+        msgEl.textContent = "El número celular es obligatorio.";
+        msgEl.className = "form-msg error";
+        return;
+      }
+      if (type === "provincia" && (!data.nombre || !data.ci || !data.destino)) {
+        msgEl.textContent = "Completa nombre completo, CI y destino.";
+        msgEl.className = "form-msg error";
+        return;
+      }
+
+      btn.disabled = true;
+      const now = Date.now();
+      const doc = {
+        id: "p-" + now + "-" + Math.random().toString(36).slice(2, 8),
+        tipo: type,
+        celular: data.celular.trim(),
+        dia: data.dia || "",
+        descripcion: (data.descripcion || "").trim(),
+        createdAtMs: now
+      };
+      if (type === "provincia") {
+        doc.nombre = data.nombre.trim();
+        doc.ci = data.ci.trim();
+        doc.destino = data.destino.trim();
+      }
+
+      const all = pruneExpired();
+      all.push(doc);
+      const ok = saveAll(all);
+
+      if (ok) {
+        form.reset();
+        msgEl.textContent = "Pedido registrado correctamente.";
+        msgEl.className = "form-msg ok";
+        render(type);
+        setTimeout(() => { if (msgEl.textContent === "Pedido registrado correctamente.") { msgEl.textContent = ""; msgEl.className = "form-msg"; } }, 3500);
+      } else {
+        msgEl.textContent = "No se pudo guardar. Verifica el espacio de almacenamiento del navegador.";
+        msgEl.className = "form-msg error";
+      }
+      btn.disabled = false;
+    });
+  });
+
+  // Limpieza automática al cargar y luego cada hora mientras la página esté abierta.
+  pruneExpired();
+  setInterval(pruneExpired, 60 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
